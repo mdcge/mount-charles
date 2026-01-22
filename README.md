@@ -95,24 +95,84 @@ As for electrons, once the muon momentum drops below 8.9 MeV, it is out of the t
 
 **Scattering:** Muons are scattering identically to electrons. Generally, their higher momentum will mean that their tracks are "straighter".
 
+#### Photon
+Photons are fundamentally different in that they interact in discrete events. The two processes considered for photons in this simulation are photoelectric absorption — which fully absorbs the photon — and Compton scattering — also called incoherent scattering, which scatters photons while reducing their energy. Note the absence of pair production as one of the simulated processes.
+
+**Interactions:**
+The photon interactions are computed with the following steps:
+1. Obtain the total photon mass attenuation coefficients, by adding individual interaction coefficients given in the [NIST XCOM database](https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html) (fit with log polynomial and power law functions, see [Table of coefficients](#table-of-coefficients)):
+
+   $$\mu_{\text{total}}(E)=\mu_{\text{photo}}(E) + \mu_{\text{Compton}}(E)$$
+
+   Convert this to a total macroscopic attenuation coefficient by multiplying by the material density (for liquid water, this is a factor of 1).
+
+2. Calculate the mean free path:
+
+   $$\lambda(E)=\frac{1}{\mu_{\text{total}}(E)}$$
+
+   This corresponds to the mean distance between each interaction, the distribution of which is given by
+
+   $$P(x)=\frac{1}{\lambda}e^{-\lambda x}$$
+
+3. After each interaction, calculate the distance to the next interaction using
+
+   $$d=-\lambda\ln{(\alpha)}$$
+
+   where $\alpha$ is a random number sampled from $(0, 1]$.
+   
+4. To decide which interaction happens at the interaction point, the probability for each can be calculated simply with 
+
+   $$P_{\text{photo}}=\frac{\mu_{\text{photo}}}{\mu_{\text{total}}}\hspace{2cm}P_{\text{Compton}}=\frac{\mu_{\text{Compton}}}{\mu_{\text{total}}}$$
+
+**Energy loss:** To compute the energy loss of the photon, we treat the interactions separately. Photoelectric absorption is trivial as the photon simply loses all of its energy. For Compton scattering the energy loss is computed via the scattering angle, which is done with Klein-Nishina sampling using a rejection algorithm. For an incoming photon energy $E$:
+1. Sample $\mu=\cos{(\theta)}$ uniformly between -1 and 1.
+2. Calculate the energy ratio
+
+   $$\frac{E'}{E}=\frac{1}{1 + \alpha(1-\mu)}$$
+   
+   with $\alpha=\frac{E}{m_e}$ where $m_e$ is the mass of the electron.
+   
+3. Compute the Klein-Nishina weight
+
+   $$f(\mu)=\left(\frac{E'}{E}\right)^2 \left[\frac{E'}{E}+\frac{E}{E'}-(1-\mu^2)\right]$$
+   
+4. Accept the candidate $\mu$ with probability $P=\frac{f(\mu)}{f_{\text{max}}}$, where $f_{\text{max}}$ is set to 2.0 for this simulation. This variable essentially decides how stringent the rejection algorithm is: too low values provide less precise results, too high values mean more iterations before a candidate is accepted. If the candidate is rejected, repeat the process with a new $\mu$ candidate. Otherwise, extract the angle with $\theta=\arccos{(\mu)}$.
+
+Once the angle is found for the scatter, the energy loss is calculated with
+
+$$\Delta E = E-E' = E\left(1 - \frac{1}{1 + \frac{E}{m_e}(1-\cos{(\theta)})}\right)$$
+
 #### Table of coefficients
-The function that is used to recreate the dE/dx curves for electrons and muons is the so-called "log polynomial" of degree $D$, given by
+The function that is used to recreate the dE/dx curves for electrons and muons, as well as the Compton scattering cross-section is the so-called "log polynomial" of degree $D$, given by
 
 $$\frac{dE}{dx}(p)=\sum_{n=0}^D c_n\ln{(p)}^n$$
 
 For this simulation, the log polynomial of degree 8 is used. The optimal coefficients for each particle are shown in the table below.
 
-| Coefficients | Electrons | Muons (<50 MeV) | Muons (>50 MeV) |
-| :----------: | --------: | --------------: | --------------: |
-| $c_0$ | $1.97185875\cdot 10^0$     | $-2.21192313\cdot 10^5$ | $1.13754387\cdot 10^3$     |
-| $c_1$ | $-4.90322067\cdot 10^{-1}$ | $4.16349323\cdot 10^5$  | $-1.13642381\cdot 10^3$    |
-| $c_2$ | $5.67984147\cdot 10^{-1}$  | $-3.02334049\cdot 10^5$ | $4.96588219\cdot 10^2$     |
-| $c_3$ | $-3.78515229\cdot 10^{-1}$ | $9.22330794\cdot 10^4$  | $-1.23563655\cdot 10^2$    |
-| $c_4$ | $1.96937857\cdot 10^{-1}$  | $1.78846389\cdot 10^3$  | $1.91190645\cdot 10^1$     |
-| $c_5$ | $-6.69875048\cdot 10^{-2}$ | $-9.81957228\cdot 10^3$ | $-1.88126582\cdot 10^0$    |
-| $c_6$ | $1.30714285\cdot 10^{-2}$  | $2.97223872\cdot 10^3$  | $1.14850292\cdot 10^{-1}$  |
-| $c_7$ | $-1.31646064\cdot 10^{-3}$ | $-3.90203242\cdot 10^2$ | $-3.97495919\cdot 10^{-3}$ |
-| $c_8$ | $5.29555090\cdot 10^{-5}$  | $1.99344973\cdot 10^1$  | $5.96940644\cdot 10^{-5}$  |
+| Coefficient | Electrons | Muons (<50 MeV) | Muons (>50 MeV) | Photons (Compton) |
+| :---------: | --------: | --------------: | --------------: | ----------------: |
+| $c_0$ | $1.97185875\cdot 10^0$     | $-2.21192313\cdot 10^5$ | $1.13754387\cdot 10^3$     | $7.05838611\cdot 10^{-2}$  | 
+| $c_1$ | $-4.90322067\cdot 10^{-1}$ | $4.16349323\cdot 10^5$  | $-1.13642381\cdot 10^3$    | $-3.55852266\cdot 10^{-2}$ |
+| $c_2$ | $5.67984147\cdot 10^{-1}$  | $-3.02334049\cdot 10^5$ | $4.96588219\cdot 10^2$     | $4.99571928\cdot 10^{-3}$  |
+| $c_3$ | $-3.78515229\cdot 10^{-1}$ | $9.22330794\cdot 10^4$  | $-1.23563655\cdot 10^2$    | $7.02986758\cdot 10^{-4}$  |
+| $c_4$ | $1.96937857\cdot 10^{-1}$  | $1.78846389\cdot 10^3$  | $1.91190645\cdot 10^1$     | $-2.81938080\cdot 10^{-4}$ |
+| $c_5$ | $-6.69875048\cdot 10^{-2}$ | $-9.81957228\cdot 10^3$ | $-1.88126582\cdot 10^0$    | $1.60699821\cdot 10^{-5}$  |
+| $c_6$ | $1.30714285\cdot 10^{-2}$  | $2.97223872\cdot 10^3$  | $1.14850292\cdot 10^{-1}$  | $2.97942065\cdot 10^{-6}$  |
+| $c_7$ | $-1.31646064\cdot 10^{-3}$ | $-3.90203242\cdot 10^2$ | $-3.97495919\cdot 10^{-3}$ | $-3.27163146\cdot 10^{-7}$ |
+| $c_8$ | $5.29555090\cdot 10^{-5}$  | $1.99344973\cdot 10^1$  | $5.96940644\cdot 10^{-5}$  | $3.12212653\cdot 10^{-9}$  |
+
+To recreate the photoelectric absorption cross-section for photons, the sum of $N$ power laws is used:
+
+$$\sigma(E)=\sum_{i=1}^N A_i E^{-p_i}$$
+
+For this simulation, $N=2$ is used. The optimal coefficients are shown below.
+
+| Coefficient | Photons (photoelectric) |
+| :---------: | ----------------------: |
+| $A_1$ | $1.99979566\cdot 10^{-6}$ |
+| $A_2$ | $1.52497758\cdot 10^{-6}$ |
+| $p_1$ | $3.16002041$ |
+| $p_2$ | $1.03879142$ |
 
 # What The Particle
 This section describes the game aspect of this project, including the different functionalities and levels available.
