@@ -1,6 +1,6 @@
 use crate::particle::particle::{Particle, ParticleType};
 use crate::utils::operations::log_polynomial;
-use crate::utils::constants::{ELECTRON_DEDX_COEFFS, MUON_DEDX_LOW_COEFFS, MUON_DEDX_HIGH_COEFFS};
+use crate::utils::constants::{ELECTRON_DEDX_COEFFS, MUON_DEDX_LOW_COEFFS, MUON_DEDX_HIGH_COEFFS, COMPTON_COEFFS};
 
 // Get particle energy
 pub fn energy(particle: &Particle) -> f64 {
@@ -43,6 +43,11 @@ pub fn ke(particle: &Particle) -> f64 {
     let p = particle.state.p.mag();
     let m = particle.state.m;
     (p*p + m*m).sqrt() - m
+}
+
+// Attenuation coefficients for gammas
+fn mu_compton(particle: &Particle) -> f64 {
+    log_polynomial(particle.state.p.mag(), COMPTON_COEFFS.into())
 }
 
 // Tests
@@ -130,5 +135,15 @@ mod tests {
         assert_relative_eq!(ke(&p4), 0.11823783746825711);
         assert_relative_eq!(ke(&p5), 53.679415397928075);
         assert_relative_eq!(ke(&p6), 72.35330175017819);
+    }
+
+    #[test]
+    fn test_mu_compton() {
+        let p1 = Particle::new(Vec3(1.5, -2.1, -4.8), Vec3(3.0, 4.0, 0.0), ParticleType::Gamma);
+        let p2 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(-10.0, -100.0, 20.0), ParticleType::Gamma);
+        let p3 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.0, 0.0), ParticleType::Gamma);
+        assert_relative_eq!(mu_compton(&p1), 0.027507314428759033);
+        assert_relative_eq!(mu_compton(&p2), 0.002409009744319685);
+        assert_relative_eq!(mu_compton(&p3), 0.09734846035725048);
     }
 }
