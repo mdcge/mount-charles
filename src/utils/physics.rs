@@ -1,6 +1,6 @@
 use crate::particle::particle::{Particle, ParticleType};
 use crate::utils::operations::log_polynomial;
-use crate::utils::constants::{ELECTRON_DEDX_COEFFS, MUON_DEDX_LOW_COEFFS, MUON_DEDX_HIGH_COEFFS, COMPTON_COEFFS};
+use crate::utils::constants::{ELECTRON_DEDX_COEFFS, MUON_DEDX_LOW_COEFFS, MUON_DEDX_HIGH_COEFFS, COMPTON_COEFFS, PHOTOELECTRIC_A_COEFFS, PHOTOELECTRIC_P_COEFFS};
 
 // Get particle energy
 pub fn energy(particle: &Particle) -> f64 {
@@ -45,9 +45,15 @@ pub fn ke(particle: &Particle) -> f64 {
     (p*p + m*m).sqrt() - m
 }
 
-// Attenuation coefficients for gammas
+// Compton scattering attenuation coefficient
 fn mu_compton(particle: &Particle) -> f64 {
     log_polynomial(particle.state.p.mag(), COMPTON_COEFFS.into())
+}
+
+// Photoelectric effect attenuation coefficient
+fn mu_photo(particle: &Particle) -> f64 {
+    let energy = particle.state.p.mag();
+    PHOTOELECTRIC_A_COEFFS[0] * energy.powf(-PHOTOELECTRIC_P_COEFFS[0]) + PHOTOELECTRIC_A_COEFFS[1] * energy.powf(-PHOTOELECTRIC_P_COEFFS[1])
 }
 
 // Tests
@@ -145,5 +151,15 @@ mod tests {
         assert_relative_eq!(mu_compton(&p1), 0.027507314428759033);
         assert_relative_eq!(mu_compton(&p2), 0.002409009744319685);
         assert_relative_eq!(mu_compton(&p3), 0.09734846035725048);
+    }
+
+    #[test]
+    fn test_mu_photo() {
+        let p1 = Particle::new(Vec3(1.5, -2.1, -4.8), Vec3(3.0, 4.0, 0.0), ParticleType::Gamma);
+        let p2 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(-10.0, -100.0, 20.0), ParticleType::Gamma);
+        let p3 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.0, 0.0), ParticleType::Gamma);
+        assert_relative_eq!(mu_photo(&p1), 2.9890205789156227e-7);
+        assert_relative_eq!(mu_photo(&p2), 1.2436722113325266e-8);
+        assert_relative_eq!(mu_photo(&p3), 2.1008095955227985e-5);
     }
 }
