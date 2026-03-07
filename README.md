@@ -1,34 +1,25 @@
-# What The Particle?! — A LiquidO Game
+# Mount Charles — A Particle Simulator
 
-This project is comprised of two main components:
+This project is a custom GEANT4-style particle propagation simulation.
 
-1. **Mount Charles**, a custom GEANT4-style particle propagation simulation.
-2. **What The Particle?!**, an interactive guessing game which uses Mount Charles.
-
-This project was originally created as an outreach tool for the LiquidO experiment, and was partly inspired by the Zooniverse's [Name That Neutrino](https://www.zooniverse.org/projects/icecubeobservatory/name-that-neutrino) project.
-
-Mount Charles is written in pure Rust, while the game renders the results of the simulation using JavaScript (specifically ThreeJS).
-
-# Mount Charles
-
-## Conventions
+# Conventions
 Mirroring GEANT4, the simulation uses millimetres (mm), nanoseconds (ns) and mega-electronvolts (MeV) as the base units for length, time and energy respectively.
 
 Natural units are used for all the electronvolt-related quantities, so the units of mass, energy and momentum are all MeV. 
 
-## Structure
+# Structure
 
-### World
+## World
 The top-level object in the simulation is the world. This stores:
 1. Global time: the absolute time of the simulation, which starts at 0ns when the particle(s) is produced.
 2. Time step: the time step used in the simulation. Each simulation step will advance the global time by this time step.
 3. List of particles: a list of all the particles in the event. These are kept in the list even when they are no longer being simulated (due to exiting the volume, decaying, etc.).
 4. Volume: the simulation volume in which the particles are contained. The particles are killed upon exiting this volume.
 
-### Volume
+## Volume
 The simulation volume is a cube centred on the origin and characterized by a single `size` parameter: this corresponds to the edge length of the simulation cube. Particle [interaction](#interactions) and [propagation](#propagation) is only calculated inside this volume. For simplicity, the volume is taken to be made of liquid water.
 
-### Particle
+## Particle
 A particle is made of two components:
 1. Particle type: currently one of electron ($e^-$), muon ($\mu^-$) or gamma ($\gamma$).
 2. Particle state: this describes the particle's properties, namely
@@ -37,37 +28,40 @@ A particle is made of two components:
    3. Mass: the mass of the particle (MeV).
    4. Alive: whether the particle is considered "alive" or not, i.e. whether it is still being simulated.
    
-## Physics processes
+# Physics processes
 
-### Propagation
+## Propagation
 For every time step, every active particle in the simulation is propagated with the small position update
 
 $$\Delta\vec{r} = \hat{p}\cdot\beta c\cdot \Delta t$$
 
 where $\vec{r}$ is the particle position, $\hat{p}$ its normalized momentum vector, $\beta$ the speed parameter of the particle ($v/c$), $c$ the speed of light (in appropriate units, mm/ns) and $\Delta t$ the time step (in ns).
 
-### Interactions
+## Interactions
 As this is a very simple particle simulator, only the dominant interaction for each particle type is implemented.
 
-#### Electron
+### Electron
 Electron interactions are treated in two parts: energy loss and scattering. These are essentially the manifestations of the change in momentum at each time step: energy loss corresponds to the change in the momentum magnitude, while scattering corresponds to the change in the momentum direction.
 
-**Energy loss:** Energy loss for ionizing particles is governed by the stopping power of the target material for that particle, notated dE/dx, which varies as a function of particle momentum. For electrons in this simulation, the [NIST ESTAR database](https://physics.nist.gov/PhysRefData/Star/Text/ESTAR.html) is used, with the material set to liquid water. This yields a list of discrete kinetic energy values with their corresponding dE/dx values. In order to obtain an analytical form that can be computed quickly during the simulation, a function (see [Table of coefficients](#table-of-coefficients)) is fit to the database values. Then, at every time step, the energy of the particle is decreased by
+#### Energy loss
+Energy loss for ionizing particles is governed by the stopping power of the target material for that particle, notated dE/dx, which varies as a function of particle momentum. For electrons in this simulation, the [NIST ESTAR database](https://physics.nist.gov/PhysRefData/Star/Text/ESTAR.html) is used, with the material set to liquid water. This yields a list of discrete kinetic energy values with their corresponding dE/dx values. In order to obtain an analytical form that can be computed quickly during the simulation, a function (see [Table of coefficients](#table-of-coefficients)) is fit to the database values. Then, at every time step, the energy of the particle is decreased by
 
 $$\Delta E = \frac{dE}{dx}\cdot dx = \frac{dE}{dx}\cdot\beta c\cdot\Delta t$$
 
 Once the electron momentum drops below 0.103 MeV, it is out of the tabulated range, so a constant 8 MeV/cm energy loss is assumed.
 
-**Scattering:** The dominant process in electron scattering (at MeV energies) is multiple Coulomb scattering (MCS). This process can be approximated using the Highland formula (given in this [PDG review](https://pdg.lbl.gov/2019/reviews/rpp2018-rev-passage-particles-matter.pdf) for example), which gives the RMS scattering angle for the electron for a small step $dx$:
+#### Scattering
+The dominant process in electron scattering (at MeV energies) is multiple Coulomb scattering (MCS). This process can be approximated using the Highland formula (given in this [PDG review](https://pdg.lbl.gov/2019/reviews/rpp2018-rev-passage-particles-matter.pdf) for example), which gives the RMS scattering angle for the electron for a small step $dx$:
 
 $$\theta_0 = \frac{13.6\text{ MeV}}{\beta p}\sqrt{\frac{dx}{X_0}}\left[1 + 0.038\ln{\left(\frac{dx}{X_0}\right)}\right]$$
 
 where $p$ is the momentum of the electron, $\beta$ the speed parameter and $X_0$ the radiation length of the material. In this formula, the $\frac{z^2}{\beta^2}$ term has been omitted from the logarithm, as it is considered to be negligible. In this simulation, the value for water of $X_0=36.08\text{ cm}$ is used.
 
-#### Muon
+### Muon
 Muons are treated very similarly to electrons. The two components of the interaction are described below.
 
-**Energy loss:** Energy loss for muons is separated into two cases: momentum above and below 50MeV ("high" and "low" momentum).
+#### Energy loss
+Energy loss for muons is separated into two cases: momentum above and below 50MeV ("high" and "low" momentum).
 
 The dE/dx curve for the high momentum range is computed from the tabulated values in the full version of [this paper](https://pdg.lbl.gov/2023/AtomicNuclearProperties/adndt.pdf). These values are again fit to a degree 8 "log polynomial" (see [Table of coefficients](#table-of-coefficients)) in order to interpolate between the discrete given values.
 
@@ -93,12 +87,13 @@ and the values of the other parameters for liquid water are shown in this table:
 
 As for electrons, once the muon momentum drops below 8.9 MeV, it is out of the tabulated range, so a constant 8 MeV/cm energy loss is assumed.
 
-**Scattering:** Muons are scattering identically to electrons. Generally, their higher momentum will mean that their tracks are "straighter".
+#### Scattering
+Muons are scattering identically to electrons. Generally, their higher momentum will mean that their tracks are "straighter".
 
-#### Photon
+### Photon
 Photons are fundamentally different in that they interact in discrete events. The two processes considered for photons in this simulation are photoelectric absorption — which fully absorbs the photon — and Compton scattering — also called incoherent scattering, which scatters photons while reducing their energy. Note the absence of pair production as one of the simulated processes.
 
-**Interactions:**
+#### Interactions
 The photon interactions are computed with the following steps:
 1. Obtain the total photon mass attenuation coefficients, by adding individual interaction coefficients given in the [NIST XCOM database](https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html) (fit with log polynomial and power law functions, see [Table of coefficients](#table-of-coefficients)):
 
@@ -124,7 +119,8 @@ The photon interactions are computed with the following steps:
 
    $$P_{\text{photo}}=\frac{\mu_{\text{photo}}}{\mu_{\text{total}}}\hspace{2cm}P_{\text{Compton}}=\frac{\mu_{\text{Compton}}}{\mu_{\text{total}}}$$
 
-**Energy loss:** To compute the energy loss of the photon, we treat the interactions separately. Photoelectric absorption is trivial as the photon simply loses all of its energy. For Compton scattering the energy loss is computed via the scattering angle, which is done with Klein-Nishina sampling using a rejection algorithm. For an incoming photon energy $E$:
+#### Energy loss
+To compute the energy loss of the photon, we treat the interactions separately. Photoelectric absorption is trivial as the photon simply loses all of its energy. For Compton scattering the energy loss is computed via the scattering angle, which is done with Klein-Nishina sampling using a rejection algorithm. For an incoming photon energy $E$:
 1. Sample $\mu=\cos{(\theta)}$ uniformly between -1 and 1.
 2. Calculate the energy ratio
 
@@ -142,7 +138,7 @@ Once the angle is found for the scatter, the energy loss is calculated with
 
 $$\Delta E = E-E' = E\left(1 - \frac{1}{1 + \frac{E}{m_e}(1-\cos{(\theta)})}\right)$$
 
-#### Table of coefficients
+### Table of coefficients
 The function that is used to recreate the dE/dx curves for electrons and muons, as well as the Compton scattering cross-section is the so-called "log polynomial" of degree $D$, given by
 
 $$\frac{dE}{dx}(p)=\sum_{n=0}^D c_n\ln{(p)}^n$$
@@ -173,40 +169,3 @@ For this simulation, $N=2$ is used. The optimal coefficients are shown below.
 | $A_2$ | $1.52497758\cdot 10^{-6}$ |
 | $p_1$ | $3.16002041$ |
 | $p_2$ | $1.03879142$ |
-
-# What The Particle
-This section describes the game aspect of this project, including the different functionalities and levels available.
-
-## Navigation
-The 3D view has two different types of cameras: perspective and orthographic. In orthographic mode, the camera looks along the axis, with the axis in question being determined by the user.
-
-In perspective mode, the view can be zoomed, panned and rotated. In orthographic mode, only zooming and panning are possible.
-
-The navigation operations are summarized in the following table:
-| Action                    | Input                         |
-| :------------------------ | :---------------------------: |
-| Zoom in                   | Scroll up                     |
-| Zoom out                  | Scroll down                   |
-| Pan                       | `Shift` + `Left click` + drag |
-| Rotate                    | `Left click` + drag           |
-| Perspective view          | `0` or `p`                    |
-| Orthographic view along x | `1` or `x`                    |
-| Orthographic view along y | `2` or `y`                    |
-| Orthographic view along z | `3` or `z`                    |
-
-# Development
-
-## Compiling to JS
-In order to expose an API usable from JS, the `wasm_bindgen` crate is used. In the top-level `lib.rs` file, a `WASMWorld` struct is created, annotated with `#[wasm_bindgen]`. The `WASMWorld` struct can then be `impl`-ed , adding any API that is desired.
-
-In order to compile this, run (in the root directory of the project, next to `Cargo.toml`):
-``` zsh
-wasm-pack build --target web -m no-install
-```
-(note that the installed `wasm-bindgen` and the cargo `wasm-bindgen` versions must match exactly).
-
-This creates a `pkg/` which contains a `mount_charles.js` file. This can be imported in JS:
-``` zsh
-import init, { WASMWorld } from "./pkg/mount_charles.js";
-```
-in order to use the functions exposed by the API.

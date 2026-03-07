@@ -1,4 +1,4 @@
-use crate::Vec3;
+use crate::utils::vec3::Vec3;
 
 // Returns the two missing vectors to create an orthonormal basis with `vec`
 pub fn orthonormal_basis(vec: Vec3) -> (Vec3, Vec3) {
