@@ -30,7 +30,7 @@ pub fn dEdx(particle: &Particle) -> f64 {
         ParticleType::Electron if momentum < 0.103 => 8.0 * 0.1,  // constant energy loss below fit range
         ParticleType::Electron                     => log_polynomial(momentum, vec![1.97185875, -4.90322067e-01, 5.67984147e-01, -3.78515229e-01, 1.96937857e-01, -6.69875048e-02, 1.30714285e-02, -1.31646064e-03, 5.29555090e-05]) * 0.1,
         ParticleType::Muon if momentum < 8.9       => 8.0 * 0.1,  // constant energy loss below fit range
-        ParticleType::Muon if momentum < 50.0      => log_polynomial(momentum, vec![-2.21192313e+05, 4.16349323e+05, -3.02334049e+05, 9.22330794e+04, 1.78846389e+03, -9.81957228e+03, 2.97223872e+03, -3.90203242e+02, 1.99344973e+01]),
+        ParticleType::Muon if momentum < 50.0      => log_polynomial(momentum, vec![-2.21192313e+05, 4.16349323e+05, -3.02334049e+05, 9.22330794e+04, 1.78846389e+03, -9.81957228e+03, 2.97223872e+03, -3.90203242e+02, 1.99344973e+01]) * 0.1,
         ParticleType::Muon                         => log_polynomial(momentum, vec![1.13754387e+03, -1.13642381e+03, 4.96588219e+02, -1.23563655e+02, 1.91190645e+01, -1.88126582e+00, 1.14850292e-01, -3.97495919e-03, 5.96940644e-05]) * 0.1,
         ParticleType::Gamma                        => panic!("dE/dx is not defined for gammas"),
     };
