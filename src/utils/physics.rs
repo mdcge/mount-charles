@@ -19,7 +19,7 @@ pub fn gamma(particle: &Particle) -> f64 {
 pub fn beta(particle: &Particle) -> f64 {
     match particle.species {
         ParticleType::Gamma => 1.0,
-        _                   => (1.0 - 1.0/gamma(&particle).powf(2.0)).sqrt(),
+        _                   => (1.0 - 1.0/gamma(particle).powf(2.0)).sqrt(),
     }
 }
 
