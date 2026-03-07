@@ -44,7 +44,8 @@ impl Vec3 {
         let thetax = gaussian.sample(rng);
         let thetay = gaussian.sample(rng);
 
-        *self = (*self + thetax * u + thetay * v).norm() * self.mag();
+        let magnitude = self.mag();
+        *self = (*self + thetax * u + thetay * v).norm() * magnitude;
     }
 }
 
