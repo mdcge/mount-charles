@@ -3,7 +3,6 @@ use rand::{Rng, rngs::StdRng, SeedableRng};
 use crate::particle::particle::{Particle, ParticleType};
 use crate::particle::track::Track;
 use crate::geometry::volume::Volume;
-use crate::utils::vec3::Vec3;
 use crate::utils::physics::{ke, lambda};
 
 pub struct World {
