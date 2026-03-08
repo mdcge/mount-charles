@@ -48,28 +48,28 @@ pub fn ke(particle: &Particle) -> f64 {
 }
 
 // Compton scattering attenuation coefficient
-fn mu_compton(particle: &Particle) -> f64 {
+pub fn mu_compton(particle: &Particle) -> f64 {
     log_polynomial(particle.state.p.mag(), COMPTON_COEFFS.into())
 }
 
 // Photoelectric effect attenuation coefficient
-fn mu_photo(particle: &Particle) -> f64 {
+pub fn mu_photo(particle: &Particle) -> f64 {
     let energy = particle.state.p.mag();
     PHOTOELECTRIC_A_COEFFS[0] * energy.powf(-PHOTOELECTRIC_P_COEFFS[0]) + PHOTOELECTRIC_A_COEFFS[1] * energy.powf(-PHOTOELECTRIC_P_COEFFS[1])
 }
 
 // Gamma attenuation coefficient
-fn mu_total(particle: &Particle) -> f64 {
+pub fn mu_total(particle: &Particle) -> f64 {
     mu_compton(particle) + mu_photo(particle)
 }
 
 // Mean free path
-fn lambda(particle: &Particle) -> f64 {
+pub fn lambda(particle: &Particle) -> f64 {
     1.0 / mu_total(particle)
 }
 
 // Sample Compton scatter angle (Klein-Nishina sampling)
-fn compton_angle(particle: &Particle, rng: &mut impl Rng) -> f64 {
+pub fn compton_angle(particle: &Particle, rng: &mut impl Rng) -> f64 {
     let energy = particle.state.p.mag();
     let alpha = energy / Me;
     // Accept/reject loop

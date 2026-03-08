@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::utils::vec3::Vec3;
 use crate::utils::constants::{C, Me, Mmu, Mg};
-use crate::utils::physics::{beta, dEdx, ke};
+use crate::utils::physics::{beta, dEdx, ke, mu_compton, mu_total, compton_angle};
 
 // Particle state
 #[derive(Debug, Clone)]
@@ -55,7 +55,7 @@ impl Particle {
     pub fn interact(&mut self, rng: &mut impl Rng, X0: f64, dt: f64) {
         match self.species {
             ParticleType::Electron | ParticleType::Muon => self.interact_ionising(rng, X0, dt),
-            ParticleType::Gamma                         => todo!(),
+            ParticleType::Gamma                         => self.interact_gamma(rng),
         }
     }
 
@@ -74,6 +74,23 @@ impl Particle {
         self.state.p = self.state.p.norm() * (ke_post * (ke_post + 2.0*self.state.m)).sqrt();
         // Deflect momentum vector
         self.state.p.deflect(rng, theta0);
+    }
+
+    fn interact_gamma(&mut self, rng: &mut impl Rng) {
+        let mu_compton = mu_compton(&self);
+        let mu_total = mu_total(&self);
+        let p_compton = mu_compton / mu_total;
+        if rng.random::<f64>() < p_compton {
+            // Compton scattering
+            let theta = compton_angle(&self, rng);
+            let energy = self.state.p.mag();
+            let new_energy = energy / (1.0 + (energy / Me) * (1.0 - f64::cos(theta)));
+            self.state.p = self.state.p.norm() * new_energy;
+            self.state.p.rotate(rng, theta);
+        } else {
+            // Photoelectric effect
+            self.state.alive = false;
+        }
     }
 }
 
