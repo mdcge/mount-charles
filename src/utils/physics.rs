@@ -27,6 +27,7 @@ pub fn beta(particle: &Particle) -> f64 {
 }
 
 // Get dE/dx of ionizing particles (MeV/mm, hence the division by 10)
+#[allow(non_snake_case)]
 pub fn dEdx(particle: &Particle) -> f64 {
     let momentum = particle.state.p.mag();
     let value = match particle.species {
@@ -91,15 +92,6 @@ mod tests {
     use crate::utils::vec3::Vec3;
     use approx::assert_relative_eq;
 
-    fn assert_gamma_eq(lhs: Option<f64>, rhs: Option<f64>) {
-        match (lhs, rhs) {
-            (None, None)       => (),
-            (None, Some(_))    => panic!("Mismatched variants: LHS is None, RHS is Some"),
-            (Some(_), None)    => panic!("Mismatched variants: LHS is Some, RHS is None"),
-            (Some(a), Some(b)) => assert_relative_eq!(a, b),
-        }
-    }
-
     #[test]
     fn test_physics_energy() {
         let p1 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0), ParticleType::Electron);
@@ -139,6 +131,7 @@ mod tests {
         assert_relative_eq!(beta(&p3), 1.0);
     }
 
+    #[allow(non_snake_case)]
     #[test]
     fn test_physics_dEdx() {
         let p1 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 0.0, 0.0), ParticleType::Electron);

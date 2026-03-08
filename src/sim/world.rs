@@ -69,6 +69,7 @@ impl World {
             let post_energy = ke(&particle);
             let energy_deposit = match pre_energy - post_energy {
                 0.0 => None,
+                #[allow(non_snake_case)]
                 dE  => Some(f64::min(dE, pre_energy)),
             };
 

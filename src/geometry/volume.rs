@@ -1,6 +1,7 @@
 use crate::particle::particle::Particle;
 use crate::utils::vec3::Vec3;
 
+#[allow(non_snake_case)]
 #[derive(Clone)]
 pub struct Volume {
     pub size: f64,  // cube edge length (mm)

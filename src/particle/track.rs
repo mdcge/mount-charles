@@ -2,6 +2,7 @@ use crate::utils::vec3::Vec3;
 use crate::particle::particle::ParticleType;
 
 // Single track point
+#[allow(non_snake_case)]
 pub struct TrackPoint {
     pub r: Vec3,         // position
     pub t: f64,          // time
@@ -24,10 +25,6 @@ pub struct Track {
 impl Track {
     pub fn new(particle_type: ParticleType, position: Vec3, time: f64) -> Self {
         Track { particle_type: particle_type, points: vec![TrackPoint::new(position, time, None)] }
-    }
-
-    pub fn new_empty(particle_type: ParticleType) -> Self {
-        Track { particle_type: particle_type, points: vec![] }
     }
 
     pub fn record(&mut self, position: Vec3, time: f64, energy_deposit: Option<f64>) {

@@ -56,6 +56,7 @@ impl Particle {
         self.interaction_dist -= dx;
     }
 
+    #[allow(non_snake_case)]
     pub fn interact(&mut self, rng: &mut impl Rng, X0: f64, dt: f64) {
         match self.species {
             ParticleType::Electron | ParticleType::Muon => self.interact_ionising(rng, X0, dt),
@@ -63,6 +64,7 @@ impl Particle {
         }
     }
 
+    #[allow(non_snake_case)]
     fn interact_ionising(&mut self, rng: &mut impl Rng, X0: f64, dt: f64) {
         let p = self.state.p.mag();
         let ke_pre = ke(&self);  // kinetic energy before step
