@@ -3,6 +3,7 @@ use rand::Rng;
 use crate::utils::vec3::Vec3;
 use crate::utils::constants::{C, Me, Mmu, Mg};
 use crate::utils::physics::{beta, dEdx, ke, mu_compton, mu_total, compton_angle};
+use crate::particle::track::Track;
 
 // Particle state
 #[derive(Debug, Clone)]
@@ -31,6 +32,7 @@ pub enum ParticleType {
 pub struct Particle {
     pub species: ParticleType,
     pub state: ParticleState,
+    pub track: Track,
     pub interaction_dist: f64,  // distance to next interaction
 }
 
@@ -43,7 +45,7 @@ impl Particle {
         };
         let particle_state = ParticleState::new(pos, mom, mass);
 
-        Particle { species: part_type, state: particle_state, interaction_dist: 0.0 }
+        Particle { species: part_type, state: particle_state, track: Track::new(pos, 0.0), interaction_dist: 0.0 }
     }
 
     pub fn propagate(&mut self, dt: f64) {
