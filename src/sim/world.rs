@@ -1,9 +1,9 @@
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{Rng, rngs::StdRng, SeedableRng};
 
-use crate::particle::particle::Particle;
+use crate::particle::particle::{Particle, ParticleType};
 use crate::geometry::volume::Volume;
 use crate::utils::vec3::Vec3;
-use crate::utils::physics::ke;
+use crate::utils::physics::{ke, lambda};
 
 pub struct World {
     time: f64,    // world time (ns)
@@ -32,8 +32,8 @@ impl World {
 
     pub fn step(&mut self) {
         for particle in &mut self.particles {
-            // Check if particle KE is below 10keV
-            if ke(&particle) < 0.01 {
+            // Check if particle KE is below 10keV (if not a gamma)
+            if ke(&particle) < 0.01 && !matches!(particle.species, ParticleType::Gamma) {
                 particle.state.alive = false;
                 continue;
             }
@@ -54,7 +54,13 @@ impl World {
             }
 
             // Interact the particle
-            particle.interact(&mut self.rng, self.volume.X0, self.dt);
+            if particle.interaction_dist <= 0.0 {
+                particle.interact(&mut self.rng, self.volume.X0, self.dt);
+                particle.interaction_dist = match particle.species {
+                    ParticleType::Electron | ParticleType::Muon => 0.0,  // forces interaction every step
+                    ParticleType::Gamma                         => -lambda(particle) * f64::ln(self.rng.random::<f64>()),
+                }
+            }
         }
     }
 }
