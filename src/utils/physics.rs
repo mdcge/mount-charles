@@ -56,6 +56,11 @@ fn mu_photo(particle: &Particle) -> f64 {
     PHOTOELECTRIC_A_COEFFS[0] * energy.powf(-PHOTOELECTRIC_P_COEFFS[0]) + PHOTOELECTRIC_A_COEFFS[1] * energy.powf(-PHOTOELECTRIC_P_COEFFS[1])
 }
 
+// Gamma attenuation coefficient
+fn mu_total(particle: &Particle) -> f64 {
+    mu_compton(particle) + mu_photo(particle)
+}
+
 // Tests
 #[cfg(test)]
 mod tests {
@@ -161,5 +166,15 @@ mod tests {
         assert_relative_eq!(mu_photo(&p1), 2.9890205789156227e-7);
         assert_relative_eq!(mu_photo(&p2), 1.2436722113325266e-8);
         assert_relative_eq!(mu_photo(&p3), 2.1008095955227985e-5);
+    }
+
+    #[test]
+    fn test_mu_total() {
+        let p1 = Particle::new(Vec3(1.5, -2.1, -4.8), Vec3(3.0, 4.0, 0.0), ParticleType::Gamma);
+        let p2 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(-10.0, -100.0, 20.0), ParticleType::Gamma);
+        let p3 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.0, 0.0), ParticleType::Gamma);
+        assert_relative_eq!(mu_total(&p1), 0.027507613330816926);
+        assert_relative_eq!(mu_total(&p2), 0.0024090221810417986);
+        assert_relative_eq!(mu_total(&p3), 0.09736946845320571);
     }
 }
