@@ -93,6 +93,7 @@ impl Particle {
             self.state.p.rotate(rng, theta);
         } else {
             // Photoelectric effect
+            self.state.p = Vec3(0.0, 0.0, 0.0);
             self.state.alive = false;
         }
     }
