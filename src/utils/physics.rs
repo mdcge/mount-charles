@@ -1,6 +1,8 @@
+use rand::Rng;
+
 use crate::particle::particle::{Particle, ParticleType};
 use crate::utils::operations::log_polynomial;
-use crate::utils::constants::{ELECTRON_DEDX_COEFFS, MUON_DEDX_LOW_COEFFS, MUON_DEDX_HIGH_COEFFS, COMPTON_COEFFS, PHOTOELECTRIC_A_COEFFS, PHOTOELECTRIC_P_COEFFS};
+use crate::utils::constants::{Me, ELECTRON_DEDX_COEFFS, MUON_DEDX_LOW_COEFFS, MUON_DEDX_HIGH_COEFFS, COMPTON_COEFFS, PHOTOELECTRIC_A_COEFFS, PHOTOELECTRIC_P_COEFFS};
 
 // Get particle energy
 pub fn energy(particle: &Particle) -> f64 {
@@ -64,6 +66,22 @@ fn mu_total(particle: &Particle) -> f64 {
 // Mean free path
 fn lambda(particle: &Particle) -> f64 {
     1.0 / mu_total(particle)
+}
+
+// Sample Compton scatter angle (Klein-Nishina sampling)
+fn compton_angle(particle: &Particle, rng: &mut impl Rng) -> f64 {
+    let energy = particle.state.p.mag();
+    let alpha = energy / Me;
+    // Accept/reject loop
+    loop {
+        let mu = rng.gen_range(-1.0..=1.0);
+        let energy_ratio = 1.0 / (1.0 + alpha * (1.0 - mu));
+        let f = energy_ratio.powf(2.0) * (energy_ratio + (1.0/energy_ratio) - (1.0 - mu.powf(2.0))); // Klein-Nishina weight
+        let f_max = 2.0;
+        if rng.random::<f64>() < f / f_max {
+            return f64::acos(mu);
+        }
+    }
 }
 
 // Tests
