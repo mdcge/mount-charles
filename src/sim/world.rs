@@ -9,7 +9,6 @@ pub struct World {
     pub time: f64,    // world time (ns)
     pub dt: f64,  // time step (ns)
     pub particles: Vec<Particle>,
-    pub position_history: Vec<Vec3>,  // list of positions (temporary measure)
     pub volume: Volume,
     pub rng: StdRng,
 }
@@ -20,7 +19,6 @@ impl World {
             time: 0.0,
             dt: timestep,
             particles: particle_list,
-            position_history: vec![],
             volume: vol,
             rng: StdRng::seed_from_u64(random_seed)
         }

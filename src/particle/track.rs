@@ -1,4 +1,5 @@
 use crate::utils::vec3::Vec3;
+use crate::particle::particle::ParticleType;
 
 // Single track point
 pub struct TrackPoint {
@@ -16,16 +17,17 @@ impl TrackPoint {
 
 // Full track
 pub struct Track {
+    pub particle_type: ParticleType,
     pub points: Vec<TrackPoint>,
 }
 
 impl Track {
-    pub fn new(position: Vec3, time: f64) -> Self {
-        Track { points: vec![TrackPoint::new(position, time, None)] }
+    pub fn new(particle_type: ParticleType, position: Vec3, time: f64) -> Self {
+        Track { particle_type: particle_type, points: vec![TrackPoint::new(position, time, None)] }
     }
 
-    pub fn new_empty() -> Self {
-        Track { points: vec![] }
+    pub fn new_empty(particle_type: ParticleType) -> Self {
+        Track { particle_type: particle_type, points: vec![] }
     }
 
     pub fn record(&mut self, position: Vec3, time: f64, energy_deposit: Option<f64>) {
@@ -55,13 +57,13 @@ mod tests {
 
     #[test]
     fn test_track_creation() {
-        let _t1 = Track::new(Vec3(0.0, 0.0, 0.0), 0.0);
-        let _t2 = Track::new(Vec3(-7.3, 5.2, -10.1), 5.9);
+        let _t1 = Track::new(ParticleType::Electron, Vec3(0.0, 0.0, 0.0), 0.0);
+        let _t2 = Track::new(ParticleType::Gamma, Vec3(-7.3, 5.2, -10.1), 5.9);
     }
 
     #[test]
     fn test_track_record() {
-        let mut t1 = Track::new(Vec3(0.0, 0.0, 0.0), 0.0);
+        let mut t1 = Track::new(ParticleType::Muon, Vec3(0.0, 0.0, 0.0), 0.0);
         t1.record(Vec3(1.0, 0.0, 0.0), 1.0, None);
         t1.record(Vec3(2.5, -0.3, 0.0), 2.0, Some(5.0));
         t1.record(Vec3(3.1, -0.8, 0.0), 2.5, None);

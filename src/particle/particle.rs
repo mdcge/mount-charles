@@ -45,7 +45,7 @@ impl Particle {
         };
         let particle_state = ParticleState::new(pos, mom, mass);
 
-        Particle { species: part_type, state: particle_state, track: Track::new(pos, 0.0), interaction_dist: 0.0 }
+        Particle { species: part_type.clone(), state: particle_state, track: Track::new(part_type, pos, 0.0), interaction_dist: 0.0 }
     }
 
     pub fn propagate(&mut self, dt: f64) {
