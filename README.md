@@ -172,3 +172,80 @@ For this simulation, $N=2$ is used. The optimal coefficients are shown below.
 | $A_2$ | $1.52497758\cdot 10^{-6}$ |
 | $p_1$ | $3.16002041$ |
 | $p_2$ | $1.03879142$ |
+
+# Usage
+A small example code for running the simulation is shown below:
+
+``` rust
+mod utils;
+mod particle;
+mod geometry;
+mod sim;
+
+use std::io::{Write, stdout};
+
+use sim::world::World;
+use geometry::volume::Volume;
+use particle::particle::{Particle, ParticleType};
+use utils::vec3::Vec3;
+
+fn main() {
+    // Define detector volume
+    let volume = Volume::new(
+        1000.0,  // size (1m cube)
+        360.8    // radiation length (water)
+    );
+
+    // Define particles
+    let particles = vec![
+        Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(5.0,   0.0,  0.0), ParticleType::Electron),
+        Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 500.0,  0.0), ParticleType::Muon),
+        Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(0.0,   0.0, 10.0), ParticleType::Gamma),
+    ];
+
+    // Define world
+    let mut world = World::new(
+        particles,
+        volume,
+        0.01,      // dt
+        42         // random seed
+    );
+
+    // Simulate
+    let mut step = 0;
+    while world.has_alive_particles() {
+        // Step the simulation
+        world.step();
+        step += 1;
+
+        print!("\rStep {}", step);
+        stdout().flush().unwrap();
+
+        if step > 1000 {
+            println!("Max steps reached!");
+            break;
+        }
+    }
+    println!("\nFinished after {} steps\n\n", step);
+
+    for track in world.tracks().iter() {
+        let particle_name = match track.particle_type{
+            ParticleType::Electron => "e-",
+            ParticleType::Muon     => "mu-",
+            ParticleType::Gamma    => "gamma",
+        };
+        println!("Particle {}:", particle_name);
+        for point in track.points.iter() {
+            println!("   Position: ({:.2}, {:.2}, {:.2})     Time: {:.2}     Energy deposited: {:.2?}",
+                     point.r.0,
+                     point.r.1,
+                     point.r.2,
+                     point.t,
+                     point.E
+            );
+        }
+        println!("");
+    }
+}
+```
+
