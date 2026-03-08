@@ -48,7 +48,6 @@ impl World {
 
             // Propagate the particle
             particle.propagate(self.dt);
-            self.position_history.push(particle.state.r);
 
             // Check if particle is out of bounds
             if !self.volume.contains(&particle) {
@@ -74,6 +73,9 @@ impl World {
                 0.0 => None,
                 dE  => Some(f64::min(dE, pre_energy)),
             };
+
+            // Record track point
+            particle.track.record(particle.state.r, self.time, energy_deposit);
         }
     }
 }
