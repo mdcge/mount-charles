@@ -1,6 +1,7 @@
 use rand::{Rng, rngs::StdRng, SeedableRng};
 
 use crate::particle::particle::{Particle, ParticleType};
+use crate::particle::track::Track;
 use crate::geometry::volume::Volume;
 use crate::utils::vec3::Vec3;
 use crate::utils::physics::{ke, lambda};
@@ -75,6 +76,10 @@ impl World {
             // Record track point
             particle.track.record(particle.state.r, self.time, energy_deposit);
         }
+    }
+
+    pub fn tracks(&self) -> Vec<&Track> {
+        self.particles.iter().map(|p| &p.track).collect()
     }
 }
 
