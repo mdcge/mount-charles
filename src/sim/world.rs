@@ -80,8 +80,13 @@ mod tests{
         let p1 = Particle::new(Vec3(1.0, 2.0, -3.0), Vec3(5.0, 0.0, 0.0), ParticleType::Electron);
         let p2 = Particle::new(Vec3(4.2, -1.5, 5.1), Vec3(3.4, -2.0, 0.7), ParticleType::Muon);
         let p3 = Particle::new(Vec3(20.1, -10.3, -9.7), Vec3(-100.0, 0.0, -52.1), ParticleType::Gamma);
-        let w1 = World::new(vec![p1.clone(), p2.clone(), p3.clone()], v1.clone(), 0.1, 0);
-        let w2 = World::new(vec![p1.clone(), p3.clone()], v2.clone(), 0.01, 1);
+        let w1 = World::new(vec![p1, p2, p3], v1.clone(), 0.1, 0);
+
+        let p1 = Particle::new(Vec3(1.0, 2.0, -3.0), Vec3(5.0, 0.0, 0.0), ParticleType::Electron);
+        let p3 = Particle::new(Vec3(20.1, -10.3, -9.7), Vec3(-100.0, 0.0, -52.1), ParticleType::Gamma);
+        let w2 = World::new(vec![p1, p3], v2.clone(), 0.01, 1);
+
+        let p2 = Particle::new(Vec3(4.2, -1.5, 5.1), Vec3(3.4, -2.0, 0.7), ParticleType::Muon);
         let w3 = World::new(vec![p2], v2, 0.005, 2);
         let w4 = World::new(vec![], v1, 1.0, 3);
         assert_eq!(w1.particles.len(), 3);
@@ -97,8 +102,10 @@ mod tests{
         let p1 = Particle::new(Vec3(1.0, 2.0, -3.0), Vec3(5.0, 0.0, 0.0), ParticleType::Electron);
         let p2 = Particle::new(Vec3(4.2, -1.5, 5.1), Vec3(3.4, -2.0, 0.7), ParticleType::Muon);
         let p3 = Particle::new(Vec3(20.1, -10.3, -9.7), Vec3(-100.0, 0.0, -52.1), ParticleType::Gamma);
-        let w1 = World::new(vec![p1, p2.clone(), p3], v1.clone(), 0.1, 15);
+        let w1 = World::new(vec![p1, p2, p3], v1.clone(), 0.1, 15);
         let w2 = World::new(vec![], v2.clone(), 0.01, 837);
+
+        let p2 = Particle::new(Vec3(4.2, -1.5, 5.1), Vec3(3.4, -2.0, 0.7), ParticleType::Muon);
         let w3 = World::new(vec![p2], v2, 0.005, 9882);
         let w4 = World::new(vec![], v1, 1.0, 21);
         assert!(w1.has_alive_particles());

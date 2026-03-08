@@ -28,7 +28,6 @@ pub enum ParticleType {
 }
 
 // Particle
-#[derive(Clone)]
 pub struct Particle {
     pub species: ParticleType,
     pub state: ParticleState,
