@@ -8,7 +8,7 @@ pub fn energy(particle: &Particle) -> f64 {
 }
 
 // Get gamma factor of particle
-pub fn gamma(particle: &Particle) -> f64 {
+fn gamma(particle: &Particle) -> f64 {
     let energy = energy(&particle);
     match particle.species {
         ParticleType::Gamma => panic!("gamma factor undefined for photons"),
