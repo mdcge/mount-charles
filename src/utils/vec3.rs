@@ -36,6 +36,7 @@ impl Vec3 {
              self.0*rhs.1 - self.1*rhs.0)
     }
 
+    // Deflect vector by an angle sampled from Gaussian with sigma = theta0
     pub fn deflect(&mut self, rng: &mut impl Rng, theta0: f64) {
         let (u, v) = orthonormal_basis(*self);
         let sigma = theta0 / std::f64::consts::SQRT_2;
@@ -46,6 +47,14 @@ impl Vec3 {
 
         let magnitude = self.mag();
         *self = (*self + thetax * u + thetay * v).norm() * magnitude;
+    }
+
+    // Rotate vector by exact angle
+    pub fn rotate(&mut self, rng: &mut impl Rng, theta: f64) {
+        let (u, v) = orthonormal_basis(*self);
+        let phi = rng.random::<f64>() * 2.0 * std::f64::consts::PI;
+        let magnitude = self.mag();
+        *self = (*self * f64::cos(theta) + u * f64::sin(theta) * f64::cos(phi) + v * f64::sin(theta) * f64::sin(phi)).norm() * magnitude;
     }
 }
 
