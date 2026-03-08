@@ -58,4 +58,24 @@ mod tests {
         let _t1 = Track::new(Vec3(0.0, 0.0, 0.0), 0.0);
         let _t2 = Track::new(Vec3(-7.3, 5.2, -10.1), 5.9);
     }
+
+    #[test]
+    fn test_track_record() {
+        let mut t1 = Track::new(Vec3(0.0, 0.0, 0.0), 0.0);
+        t1.record(Vec3(1.0, 0.0, 0.0), 1.0, None);
+        t1.record(Vec3(2.5, -0.3, 0.0), 2.0, Some(5.0));
+        t1.record(Vec3(3.1, -0.8, 0.0), 2.5, None);
+        assert_vec3_eq!(t1.points[0].r, Vec3(0.0, 0.0, 0.0));
+        assert_relative_eq!(t1.points[0].t, 0.0);
+        assert_eq!(t1.points[0].E, None);
+        assert_vec3_eq!(t1.points[1].r, Vec3(1.0, 0.0, 0.0));
+        assert_relative_eq!(t1.points[1].t, 1.0);
+        assert_eq!(t1.points[1].E, None);
+        assert_vec3_eq!(t1.points[2].r, Vec3(2.5, -0.3, 0.0));
+        assert_relative_eq!(t1.points[2].t, 2.0);
+        assert_eq!(t1.points[2].E, Some(5.0));
+        assert_vec3_eq!(t1.points[3].r, Vec3(3.1, -0.8, 0.0));
+        assert_relative_eq!(t1.points[3].t, 2.5);
+        assert_eq!(t1.points[3].E, None);
+    }
 }
