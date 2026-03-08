@@ -61,6 +61,11 @@ fn mu_total(particle: &Particle) -> f64 {
     mu_compton(particle) + mu_photo(particle)
 }
 
+// Mean free path
+fn lambda(particle: &Particle) -> f64 {
+    1.0 / mu_total(particle)
+}
+
 // Tests
 #[cfg(test)]
 mod tests {
@@ -176,5 +181,15 @@ mod tests {
         assert_relative_eq!(mu_total(&p1), 0.027507613330816926);
         assert_relative_eq!(mu_total(&p2), 0.0024090221810417986);
         assert_relative_eq!(mu_total(&p3), 0.09736946845320571);
+    }
+
+    #[test]
+    fn test_lambda() {
+        let p1 = Particle::new(Vec3(1.5, -2.1, -4.8), Vec3(3.0, 4.0, 0.0), ParticleType::Gamma);
+        let p2 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(-10.0, -100.0, 20.0), ParticleType::Gamma);
+        let p3 = Particle::new(Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.0, 0.0), ParticleType::Gamma);
+        assert_relative_eq!(lambda(&p1), 36.353571935653704);
+        assert_relative_eq!(lambda(&p2), 415.1061820308948);
+        assert_relative_eq!(lambda(&p3), 10.270159793268101);
     }
 }
