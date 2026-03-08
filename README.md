@@ -15,18 +15,21 @@ The top-level object in the simulation is the world. This stores:
 2. Time step: the time step used in the simulation. Each simulation step will advance the global time by this time step.
 3. List of particles: a list of all the particles in the event. These are kept in the list even when they are no longer being simulated (due to exiting the volume, decaying, etc.).
 4. Volume: the simulation volume in which the particles are contained. The particles are killed upon exiting this volume.
+5. RNG: the random number generator instance used for generating pseudo-random numbers in all functions that need them (Klein-Nishina sampling, MCS deflection angle, etc.). This single top-level instance is used so that simulations are reproducible, determined by a single seed value.
 
 ## Volume
 The simulation volume is a cube centred on the origin and characterized by a single `size` parameter: this corresponds to the edge length of the simulation cube. Particle [interaction](#interactions) and [propagation](#propagation) is only calculated inside this volume. For simplicity, the volume is taken to be made of liquid water.
 
 ## Particle
-A particle is made of two components:
+A particle is made of these components:
 1. Particle type: currently one of electron ($e^-$), muon ($\mu^-$) or gamma ($\gamma$).
 2. Particle state: this describes the particle's properties, namely
    1. Position: the 3D position of the particle (mm).
    2. Momentum: the momentum of the particle (MeV).
    3. Mass: the mass of the particle (MeV).
    4. Alive: whether the particle is considered "alive" or not, i.e. whether it is still being simulated.
+3. Particle track: this stores the position, time and energy deposited (can be None) for each point in the particle's track.
+4. Distance to next interaction: this is calculated at every interaction, after which the particle will be propagated but not interacted until the next this variable drops back to 0. This is used for regulating the discrete nature of gamma interactions. For electrons and muons, this is always set to 0.
    
 # Physics processes
 
