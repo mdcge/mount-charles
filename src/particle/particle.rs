@@ -32,6 +32,7 @@ pub enum ParticleType {
 pub struct Particle {
     pub species: ParticleType,
     pub state: ParticleState,
+    pub interaction_dist: f64,  // distance to next interaction
 }
 
 impl Particle {
@@ -43,13 +44,15 @@ impl Particle {
         };
         let particle_state = ParticleState::new(pos, mom, mass);
 
-        Particle { species: part_type, state: particle_state }
+        Particle { species: part_type, state: particle_state, interaction_dist: 0.0 }
     }
 
     pub fn propagate(&mut self, dt: f64) {
         let dir = self.state.p.norm();
         let beta = beta(&self);
-        self.state.r += dir * beta * C * dt;  // dir[1] * beta[1] * C[mm/ns] * dt[ns]
+        let dx = beta * C * dt;  // beta[1] * C[mm/ns] * dt[ns]
+        self.state.r += dir * dx;  // dir[1, 1, 1] * dx[mm]
+        self.interaction_dist -= dx;
     }
 
     pub fn interact(&mut self, rng: &mut impl Rng, X0: f64, dt: f64) {
