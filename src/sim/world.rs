@@ -56,7 +56,10 @@ impl World {
                 continue;
             }
 
-            // Interact the particle
+            // Energy before interaction
+            let pre_energy = ke(&particle);
+
+            // Interact the particle if distance to interaction is 0
             if particle.interaction_dist <= 0.0 {
                 particle.interact(&mut self.rng, self.volume.X0, self.dt);
                 particle.interaction_dist = match particle.species {
@@ -64,6 +67,13 @@ impl World {
                     ParticleType::Gamma                         => -lambda(particle) * f64::ln(self.rng.random::<f64>()),
                 }
             }
+
+            // Energy after interaction
+            let post_energy = ke(&particle);
+            let energy_deposit = match pre_energy - post_energy {
+                0.0 => None,
+                dE  => Some(f64::min(dE, pre_energy)),
+            };
         }
     }
 }
