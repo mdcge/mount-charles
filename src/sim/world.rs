@@ -30,10 +30,10 @@ impl World {
     }
 
     pub fn step(&mut self) {
-        for particle in &mut self.particles {
-            // Increment time
-            self.time += self.dt;
-            
+        // Increment time
+        self.time += self.dt;
+        
+        for particle in &mut self.particles {            
             // Check if particle KE is below 10keV (if not a gamma)
             if ke(&particle) < 0.01 && !matches!(particle.species, ParticleType::Gamma) {
                 particle.state.alive = false;
