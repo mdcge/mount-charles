@@ -6,7 +6,7 @@ use crate::utils::vec3::Vec3;
 use crate::utils::physics::{ke, lambda};
 
 pub struct World {
-    time: f64,    // world time (ns)
+    pub time: f64,    // world time (ns)
     pub dt: f64,  // time step (ns)
     pub particles: Vec<Particle>,
     pub position_history: Vec<Vec3>,  // list of positions (temporary measure)
@@ -32,6 +32,9 @@ impl World {
 
     pub fn step(&mut self) {
         for particle in &mut self.particles {
+            // Increment time
+            self.time += self.dt;
+            
             // Check if particle KE is below 10keV (if not a gamma)
             if ke(&particle) < 0.01 && !matches!(particle.species, ParticleType::Gamma) {
                 particle.state.alive = false;
