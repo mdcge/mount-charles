@@ -74,7 +74,7 @@ pub fn compton_angle(particle: &Particle, rng: &mut impl Rng) -> f64 {
     let alpha = energy / Me;
     // Accept/reject loop
     loop {
-        let mu = rng.gen_range(-1.0..=1.0);
+        let mu = rng.random_range(-1.0..=1.0);
         let energy_ratio = 1.0 / (1.0 + alpha * (1.0 - mu));
         let f = energy_ratio.powf(2.0) * (energy_ratio + (1.0/energy_ratio) - (1.0 - mu.powf(2.0))); // Klein-Nishina weight
         let f_max = 2.0;
