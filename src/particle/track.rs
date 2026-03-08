@@ -52,4 +52,10 @@ mod tests {
         assert_relative_eq!(tp2.t, 4.2);
         assert_eq!(tp2.E, Some(13.5));
     }
+
+    #[test]
+    fn test_track_creation() {
+        let _t1 = Track::new(Vec3(0.0, 0.0, 0.0), 0.0);
+        let _t2 = Track::new(Vec3(-7.3, 5.2, -10.1), 5.9);
+    }
 }
