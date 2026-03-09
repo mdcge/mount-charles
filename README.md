@@ -93,12 +93,12 @@ As for electrons, once the muon momentum drops below 8.9 MeV, it is out of the t
 #### Scattering
 Muons are scattering identically to electrons. Generally, their higher momentum will mean that their tracks are "straighter".
 
-### Photon
-Photons are fundamentally different in that they interact in discrete events. The two processes considered for photons in this simulation are photoelectric absorption — which fully absorbs the photon — and Compton scattering — also called incoherent scattering, which scatters photons while reducing their energy. Note the absence of pair production as one of the simulated processes.
+### Gamma
+Gammas are fundamentally different in that they interact in discrete events. The two processes considered for gammas in this simulation are photoelectric absorption — which fully absorbs the gamma — and Compton scattering — also called incoherent scattering, which scatters gammas while reducing their energy. Note the absence of pair production as one of the simulated processes.
 
 #### Interactions
-The photon interactions are computed with the following steps:
-1. Obtain the total photon mass attenuation coefficients, by adding individual interaction coefficients given in the [NIST XCOM database](https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html) (fit with log polynomial and power law functions, see [Table of coefficients](#table-of-coefficients)):
+The gamma interactions are computed with the following steps:
+1. Obtain the total gamma mass attenuation coefficients, by adding individual interaction coefficients given in the [NIST XCOM database](https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html) (fit with log polynomial and power law functions, see [Table of coefficients](#table-of-coefficients)):
 
    $$\mu_{\text{total}}(E)=\mu_{\text{photo}}(E) + \mu_{\text{Compton}}(E)$$
 
@@ -123,7 +123,7 @@ The photon interactions are computed with the following steps:
    $$P_{\text{photo}}=\frac{\mu_{\text{photo}}}{\mu_{\text{total}}}\hspace{2cm}P_{\text{Compton}}=\frac{\mu_{\text{Compton}}}{\mu_{\text{total}}}$$
 
 #### Energy loss
-To compute the energy loss of the photon, we treat the interactions separately. Photoelectric absorption is trivial as the photon simply loses all of its energy. For Compton scattering the energy loss is computed via the scattering angle, which is done with Klein-Nishina sampling using a rejection algorithm. For an incoming photon energy $E$:
+To compute the energy loss of the gamma, we treat the interactions separately. Photoelectric absorption is trivial as the gamma simply loses all of its energy. For Compton scattering the energy loss is computed via the scattering angle, which is done with Klein-Nishina sampling using a rejection algorithm. For an incoming gamma energy $E$:
 1. Sample $\mu=\cos{(\theta)}$ uniformly between -1 and 1.
 2. Calculate the energy ratio
 
@@ -148,7 +148,7 @@ $$\frac{dE}{dx}(p)=\sum_{n=0}^D c_n\ln{(p)}^n$$
 
 For this simulation, the log polynomial of degree 8 is used. The optimal coefficients for each particle are shown in the table below.
 
-| Coefficient | Electrons | Muons (<50 MeV) | Muons (>50 MeV) | Photons (Compton) |
+| Coefficient | Electrons | Muons (<50 MeV) | Muons (>50 MeV) | Gammas (Compton) |
 | :---------: | --------: | --------------: | --------------: | ----------------: |
 | $c_0$ | $1.97185875\cdot 10^0$     | $-2.21192313\cdot 10^5$ | $1.13754387\cdot 10^3$     | $7.05838611\cdot 10^{-2}$  | 
 | $c_1$ | $-4.90322067\cdot 10^{-1}$ | $4.16349323\cdot 10^5$  | $-1.13642381\cdot 10^3$    | $-3.55852266\cdot 10^{-2}$ |
@@ -160,13 +160,13 @@ For this simulation, the log polynomial of degree 8 is used. The optimal coeffic
 | $c_7$ | $-1.31646064\cdot 10^{-3}$ | $-3.90203242\cdot 10^2$ | $-3.97495919\cdot 10^{-3}$ | $-3.27163146\cdot 10^{-7}$ |
 | $c_8$ | $5.29555090\cdot 10^{-5}$  | $1.99344973\cdot 10^1$  | $5.96940644\cdot 10^{-5}$  | $3.12212653\cdot 10^{-9}$  |
 
-To recreate the photoelectric absorption cross-section for photons, the sum of $N$ power laws is used:
+To recreate the photoelectric absorption cross-section for gammas, the sum of $N$ power laws is used:
 
 $$\sigma(E)=\sum_{i=1}^N A_i E^{-p_i}$$
 
 For this simulation, $N=2$ is used. The optimal coefficients are shown below.
 
-| Coefficient | Photons (photoelectric) |
+| Coefficient | Gammas (photoelectric) |
 | :---------: | ----------------------: |
 | $A_1$ | $1.99979566\cdot 10^{-6}$ |
 | $A_2$ | $1.52497758\cdot 10^{-6}$ |
