@@ -1,6 +1,7 @@
 use rand::{Rng, rngs::StdRng, SeedableRng};
 
 use crate::particle::particle::{Particle, ParticleType};
+use crate::particle::photon::Photon;
 use crate::particle::track::Track;
 use crate::geometry::volume::Volume;
 use crate::utils::physics::{ke, lambda};
@@ -9,6 +10,7 @@ pub struct World {
     pub time: f64,    // world time (ns)
     pub dt: f64,  // time step (ns)
     pub particles: Vec<Particle>,
+    pub photons: Vec<Photon>,
     pub volume: Volume,
     pub rng: StdRng,
 }
@@ -19,6 +21,7 @@ impl World {
             time: 0.0,
             dt: timestep,
             particles: particle_list,
+            photons: vec![],
             volume: vol,
             rng: StdRng::seed_from_u64(random_seed)
         }
