@@ -29,7 +29,7 @@ A particle is made of these components:
    3. Mass: the mass of the particle (MeV).
    4. Alive: whether the particle is considered "alive" or not, i.e. whether it is still being simulated.
 3. Particle track: this stores the position, time and energy deposited (can be None) for each point in the particle's track.
-4. Distance to next interaction: this is calculated at every interaction, after which the particle will be propagated but not interacted until the next this variable drops back to 0. This is used for regulating the discrete nature of gamma interactions. For electrons and muons, this is always set to 0.
+4. Distance to next interaction: this is calculated at every interaction, after which the particle will be propagated but not interacted until the next time this variable drops back to 0. This is used for regulating the discrete nature of gamma interactions. For electrons and muons, this is always set to 0.
    
 # Physics processes
 
