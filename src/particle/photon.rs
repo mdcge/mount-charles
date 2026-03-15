@@ -13,15 +13,35 @@ impl PhotonState {
     }
 }
 
-// Will have a `track` field, and probably a `interaction_dist` field
+pub struct PhotonTrack {
+    pub vertices: Vec<(Vec3, f64)>,  // (position, time) of each vertex
+}
+
+impl PhotonTrack {
+    pub fn new(origin: Vec3, time: f64) -> Self {
+        PhotonTrack { vertices: vec![(origin, time)] }
+    }
+
+    pub fn record(&mut self, position: Vec3, time: f64) {
+        self.vertices.push((position, time));
+    }
+}
+
+// Will probably have a `interaction_dist` field
 pub struct Photon {
     pub state: PhotonState,
+    pub track: PhotonTrack,
 }
 
 impl Photon {
     pub fn new(position: Vec3, direction: Vec3, time: f64) -> Self {
         let photon_state = PhotonState::new(position, direction, time);
-        Photon { state: photon_state }
+        let photon_track = PhotonTrack::new(position, time);
+        Photon { state: photon_state, track: photon_track }
+    }
+
+    pub fn record(&mut self, position: Vec3, time: f64) {
+        self.track.record(position, time);
     }
 }
 
@@ -49,5 +69,26 @@ mod tests {
         assert_vec3_eq!(ph2.state.d, d2);
         assert_relative_eq!(ph1.state.t, t1);
         assert_relative_eq!(ph2.state.t, t2);
+    }
+
+    #[test]
+    fn test_photon_record() {
+        let v1 = Vec3(1.2, 4.3, -2.2);
+        let v2 = Vec3(0.8, -3.3, 7.1);
+        let v3 = Vec3(-3.5, 2.1, -5.0);
+        let v4 = Vec3(4.4, 2.9, -15.0);
+        let d = Vec3(1.0, 0.0, 0.0);
+        let mut ph = Photon::new(v1, d, 0.0);
+        assert_vec3_eq!(ph.track.vertices[0].0, v1);
+        assert_relative_eq!(ph.track.vertices[0].1, 0.0);
+        ph.record(v2, 0.5);
+        assert_vec3_eq!(ph.track.vertices[1].0, v2);
+        assert_relative_eq!(ph.track.vertices[1].1, 0.5);
+        ph.record(v3, 0.9);
+        assert_vec3_eq!(ph.track.vertices[2].0, v3);
+        assert_relative_eq!(ph.track.vertices[2].1, 0.9);
+        ph.record(v4, 1.7);
+        assert_vec3_eq!(ph.track.vertices[3].0, v4);
+        assert_relative_eq!(ph.track.vertices[3].1, 1.7);
     }
 }
