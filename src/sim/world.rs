@@ -94,50 +94,22 @@ impl World {
                                       point.E.map(|energy| (point.r, point.t, energy))
                                   })
                                   .collect::<Vec<(Vec3, f64, f64)>>();
-
-        // Create seeds for every energy deposit
-        // This allows determinism to be preserved when running in parallel
-        let seeds = (0..energy_deposits.len())
-            .map(|_| self.rng.random::<u64>())
-            .collect::<Vec<u64>>();
-
-        let new_photons = energy_deposits
-            .into_par_iter()
-            .zip(seeds.into_par_iter())
-            .flat_map(|((position, time, energy), seed)| {
-                let mut thread_rng = StdRng::seed_from_u64(seed);
- 
-                let nb_photons = (energy * self.volume.LY) as u64;
-                
-                (0..nb_photons).map(|_| {
-                    let [x, y, z] = UnitSphere.sample(&mut thread_rng);
-                    let direction = Vec3(x, y, z);
-                    let (intersection_position, distance) = self.volume.intersect(position, direction);
-                    
-                    let mut photon = Photon::new(position, direction, time);
-                    let photon_speed = C;  // modify with refractive index
-                    photon.record(intersection_position, time + distance / photon_speed);
-                    photon
-                }).collect::<Vec<Photon>>()
-            }).collect::<Vec<Photon>>();
- 
-        self.photons.extend(new_photons);
         
-        // // Generate photons for each energy deposit
-        // for (position, time, energy) in energy_deposits {
-        //     let nb_photons = (energy * self.volume.LY) as u64;
-        //     for _ in 0..nb_photons {
-        //         let [x, y, z] = UnitSphere.sample(&mut self.rng);
-        //         let direction = Vec3(x, y, z);
-        //         let (intersection_position, distance) = self.volume.intersect(position, direction);
+        // Generate photons for each energy deposit
+        for (position, time, energy) in energy_deposits {
+            let nb_photons = (energy * self.volume.LY) as u64;
+            for _ in 0..nb_photons {
+                let [x, y, z] = UnitSphere.sample(&mut self.rng);
+                let direction = Vec3(x, y, z);
+                let (intersection_position, distance) = self.volume.intersect(position, direction);
 
-        //         // Create photon and add to photons vector
-        //         let mut photon = Photon::new(position, direction, time);
-        //         let photon_speed = C;  // modify with refractive index
-        //         photon.record(intersection_position, time + distance / photon_speed);
-        //         self.photons.push(photon);
-        //     }
-        // }
+                // Create photon and add to photons vector
+                let mut photon = Photon::new(position, direction, time);
+                let photon_speed = C;  // modify with refractive index
+                photon.record(intersection_position, time + distance / photon_speed);
+                self.photons.push(photon);
+            }
+        }
     }
 
     pub fn tracks(&self) -> Vec<&Track> {
