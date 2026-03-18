@@ -110,8 +110,13 @@ impl World {
             }
         }
     }
+
     pub fn tracks(&self) -> Vec<&Track> {
         self.particles.iter().map(|p| &p.track).collect()
+    }
+
+    pub fn photon_tracks(&self) -> Vec<&PhotonTrack> {
+        self.photons.iter().map(|ph| &ph.track).collect()
     }
 }
 
