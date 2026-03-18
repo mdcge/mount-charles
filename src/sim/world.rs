@@ -1,10 +1,13 @@
 use rand::{Rng, rngs::StdRng, SeedableRng};
+use rand_distr::{Distribution, UnitSphere};
 
 use crate::particle::particle::{Particle, ParticleType};
-use crate::particle::photon::Photon;
+use crate::particle::photon::{Photon, PhotonTrack};
 use crate::particle::track::Track;
 use crate::geometry::volume::Volume;
 use crate::utils::physics::{ke, lambda};
+use crate::utils::vec3::Vec3;
+use crate::utils::constants::C;
 
 pub struct World {
     pub time: f64,    // world time (ns)
@@ -81,6 +84,32 @@ impl World {
         }
     }
 
+    pub fn simulate_scintillation(&mut self) {
+        // Collect energy deposits from all particles
+        let energy_deposits = self.particles
+                                  .iter()
+                                  .flat_map(|p| p.track.points.iter())
+                                  .filter_map(|point| {
+                                      point.E.map(|energy| (point.r, point.t, energy))
+                                  })
+                                  .collect::<Vec<(Vec3, f64, f64)>>();
+
+        // Generate photons for each energy deposit
+        for (position, time, energy) in energy_deposits {
+            let nb_photons = (energy * self.volume.LY) as u64;
+            for _ in 0..nb_photons {
+                let [x, y, z] = UnitSphere.sample(&mut self.rng);
+                let direction = Vec3(x, y, z);
+                let (intersection_position, distance) = self.volume.intersect(position, direction);
+
+                // Create photon and add to photons vector
+                let mut photon = Photon::new(position, direction, time);
+                let photon_speed = C;  // modify with refractive index
+                photon.record(intersection_position, time + distance / photon_speed);
+                self.photons.push(photon);
+            }
+        }
+    }
     pub fn tracks(&self) -> Vec<&Track> {
         self.particles.iter().map(|p| &p.track).collect()
     }
