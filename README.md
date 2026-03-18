@@ -14,11 +14,15 @@ The top-level object in the simulation is the world. This stores:
 1. Global time: the absolute time of the simulation, which starts at 0ns when the particle(s) is produced.
 2. Time step: the time step used in the simulation. Each simulation step will advance the global time by this time step.
 3. List of particles: a list of all the particles in the event. These are kept in the list even when they are no longer being simulated (due to exiting the volume, decaying, etc.).
-4. Volume: the simulation volume in which the particles are contained. The particles are killed upon exiting this volume.
-5. RNG: the random number generator instance used for generating pseudo-random numbers in all functions that need them (Klein-Nishina sampling, MCS deflection angle, etc.). This single top-level instance is used so that simulations are reproducible, determined by a single seed value.
+4. List of photons: a list of all the scintillation photons in the event. These are separate from the main particles as they are simulated separately in a second pass. 
+5. Volume: the simulation volume in which the particles are contained. The particles are killed upon exiting this volume.
+6. RNG: the random number generator instance used for generating pseudo-random numbers in all functions that need them (Klein-Nishina sampling, MCS deflection angle, etc.). This single top-level instance is used so that simulations are reproducible, determined by a single seed value.
 
 ## Volume
-The simulation volume is a cube centred on the origin and characterized by a single `size` parameter: this corresponds to the edge length of the simulation cube. Particle [interaction](#interactions) and [propagation](#propagation) is only calculated inside this volume. For simplicity, the volume is taken to be made of liquid water.
+The simulation volume is a cube centred on the origin and characterized by:
+1. Size: this corresponds to the edge length of the simulation cube. Particle [interaction](#interactions) and [propagation](#propagation) is only calculated inside this volume. For simplicity, the volume is taken to be made of liquid water.
+2. Radiation length: the radiation length of the detector material, used in the scattering calculations of muons and electrons.
+3. Light yield: the light yield of the detector material. This is the conversion factor between the energy deposited in the scintillator and the number of scintillation photons produced.
 
 ## Particle
 A particle is made of these components:
@@ -141,6 +145,34 @@ Once the angle is found for the scatter, the energy loss is calculated with
 
 $$\Delta E = E-E' = E\left(1 - \frac{1}{1 + \frac{E}{m_e}(1-\cos{(\theta)})}\right)$$
 
+### Photons
+Photons are fundamentally different to the other particle types, and so have their own structure. They are made of
+
+1. Photon state: the current state of the photon, composed of
+   1. Position: the photon's current position.
+   2. Direction: the photon's current direction of travel.
+   3. Time: the photon's global time. This needs to be stored separately from the world time, as photons are simulated after the main simulation.
+2. Photon track: the photon track. Contrary to particle tracks, only the vertices of the photon tracks are stored, in order to save space:
+   1. Vertex: the 3D position of the photon vertex.
+   2. Time: the time at that vertex.
+   
+Photons refer specifically to scintillation, also known as optical, photons. They are simulated in a second pass, after the main particle simulation. Photons are completely independent of each other, thus the scintillation portion of the simulation lends itself very nicely to parallelization.
+
+#### Creation
+Photons are created at every point at which a particle deposits energy in the main simulation. For each energy deposit of energy $dE$, the calculation
+
+$$N=LY\cdot dE$$
+
+determines the number of photons produced at that location. They are all created with the original position and time of the energy deposit. Then, each photon is propagated as follows (this is still a very basic implementation with no scattering):
+
+1. Pick a random normalized direction.
+2. Calculate the intersection point of the direction ray with the detector volume edge
+3. Append the intersection point and time to the photon track.
+4. Add the photon to the global list of photons.
+
+#### Interactions
+Currently, photons do *not* interact. Eventually, scattering will be added.
+
 ### Table of coefficients
 The function that is used to recreate the dE/dx curves for electrons and muons, as well as the Compton scattering cross-section is the so-called "log polynomial" of degree $D$, given by
 
@@ -177,6 +209,8 @@ For this simulation, $N=2$ is used. The optimal coefficients are shown below.
 A small example code for running the simulation is shown below:
 
 ``` rust
+use std::time::Instant;
+
 mod utils;
 mod particle;
 mod geometry;
@@ -190,10 +224,13 @@ use particle::particle::{Particle, ParticleType};
 use utils::vec3::Vec3;
 
 fn main() {
+    let start = Instant::now();
+    
     // Define detector volume
     let volume = Volume::new(
         1000.0,  // size (1m cube)
-        360.8    // radiation length (water)
+        360.8,   // radiation length (water)
+        100.0,   // light yield (photons / MeV)
     );
 
     // Define particles
@@ -211,6 +248,8 @@ fn main() {
         42         // random seed
     );
 
+    let setup_time = start.elapsed();
+    
     // Simulate
     let mut step = 0;
     while world.has_alive_particles() {
@@ -226,7 +265,14 @@ fn main() {
             break;
         }
     }
+    let simulation_time = start.elapsed() - setup_time;
     println!("\nFinished after {} steps\n\n", step);
+    
+    println!("Simulating scintillation.");
+    world.simulate_scintillation();
+
+    let scintillation_time = start.elapsed() - (setup_time + simulation_time);
+    let total_time = start.elapsed();
 
     for track in world.tracks().iter() {
         let particle_name = match track.particle_type{
@@ -246,6 +292,9 @@ fn main() {
         }
         println!("");
     }
+
+    println!("Total time: {:.2?}\n   Setup: {:.2?}\n   Simulation: {:.2?}\n   Scintillation: {:.2?}",
+             total_time, setup_time, simulation_time, scintillation_time
+    )
 }
 ```
-
