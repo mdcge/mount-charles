@@ -25,10 +25,10 @@ impl Volume {
         }
     }
 
-    // Calculate the intersection point of a ray with the volume
-    // Returns the intersection point and the distance from the ray origin to the intersection point
+    // Calculate the intersection distance of a ray with the volume
+    // Returns the distance from the ray origin to the intersection point
     // Assumes a normalized direction
-    pub fn intersect(&self, position: Vec3, direction: Vec3) -> (Vec3, f64) {
+    pub fn intersect(&self, position: Vec3, direction: Vec3) -> f64 {
         let hs = self.size / 2.0;  // half-size
         let mut t_min = f64::INFINITY;
 
@@ -55,9 +55,8 @@ impl Volume {
                 }
             }
         }
-        // Compute the hit position
-        let intersection_position = position + direction * t_min;
-        (intersection_position, t_min)
+
+        t_min
     }
 }
 
@@ -104,29 +103,17 @@ mod tests {
         let d1 = Vec3::new(1.0, 0.0, 0.0);
         let d2 = Vec3::new(0.0, -1.0, 0.0);
         let d3 = Vec3::new(0.2672612419124243, 0.5345224838248487, 0.8017837257372731);
-        assert_vec3_eq!(v1.intersect(p1, d1).0, Vec3::new(50.0, 0.0, 0.0));
-        assert_relative_eq!(v1.intersect(p1, d1).1, 50.0);
-        assert_vec3_eq!(v1.intersect(p2, d1).0, Vec3::new(50.0, 30.0, -20.0));
-        assert_relative_eq!(v1.intersect(p2, d1).1, 10.0);
-        assert_vec3_eq!(v1.intersect(p1, d2).0, Vec3::new(0.0, -50.0, 0.0));
-        assert_relative_eq!(v1.intersect(p1, d2).1, 50.0);
-        assert_vec3_eq!(v1.intersect(p2, d2).0, Vec3::new(40.0, -50.0, -20.0));
-        assert_relative_eq!(v1.intersect(p2, d2).1, 80.0);
-        assert_vec3_eq!(v1.intersect(p1, d3).0, Vec3::new(16.666666666666664, 33.333333333333336, 50.0));
-        assert_relative_eq!(v1.intersect(p1, d3).1, 62.360956446232365);
-        assert_vec3_eq!(v1.intersect(p2, d3).0, Vec3::new(50.0, 50.0, 10.000000000000004));
-        assert_relative_eq!(v1.intersect(p2, d3).1, 37.41657386773942);
-        assert_vec3_eq!(v2.intersect(p1, d1).0, Vec3::new(75.0, 0.0, 0.0));
-        assert_relative_eq!(v2.intersect(p1, d1).1, 75.0);
-        assert_vec3_eq!(v2.intersect(p2, d1).0, Vec3::new(75.0, 30.0, -20.0));
-        assert_relative_eq!(v2.intersect(p2, d1).1, 35.0);
-        assert_vec3_eq!(v2.intersect(p1, d2).0, Vec3::new(0.0, -75.0, 0.0));
-        assert_relative_eq!(v2.intersect(p1, d2).1, 75.0);
-        assert_vec3_eq!(v2.intersect(p2, d2).0, Vec3::new(40.0, -75.0, -20.0));
-        assert_relative_eq!(v2.intersect(p2, d2).1, 105.0);
-        assert_vec3_eq!(v2.intersect(p1, d3).0, Vec3::new(24.999999999999993, 50.0, 75.0));
-        assert_relative_eq!(v2.intersect(p1, d3).1, 93.54143466934855);
-        assert_vec3_eq!(v2.intersect(p2, d3).0, Vec3::new(62.5, 75.0, 47.5));
-        assert_relative_eq!(v2.intersect(p2, d3).1, 84.18729120241369);
+        assert_relative_eq!(v1.intersect(p1, d1), 50.0);
+        assert_relative_eq!(v1.intersect(p2, d1), 10.0);
+        assert_relative_eq!(v1.intersect(p1, d2), 50.0);
+        assert_relative_eq!(v1.intersect(p2, d2), 80.0);
+        assert_relative_eq!(v1.intersect(p1, d3), 62.360956446232365);
+        assert_relative_eq!(v1.intersect(p2, d3), 37.41657386773942);
+        assert_relative_eq!(v2.intersect(p1, d1), 75.0);
+        assert_relative_eq!(v2.intersect(p2, d1), 35.0);
+        assert_relative_eq!(v2.intersect(p1, d2), 75.0);
+        assert_relative_eq!(v2.intersect(p2, d2), 105.0);
+        assert_relative_eq!(v2.intersect(p1, d3), 93.54143466934855);
+        assert_relative_eq!(v2.intersect(p2, d3), 84.18729120241369);
     }
 }

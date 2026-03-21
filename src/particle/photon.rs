@@ -43,9 +43,9 @@ impl Photon {
     }
 
     pub fn simulate(&mut self, volume: &Volume) {
-        let (intersection_position, distance) = volume.intersect(self.state.r, self.state.d);
+        let distance = volume.intersect(self.state.r, self.state.d);
         let photon_speed = C / volume.n;  // modify with refractive index
-        self.record(intersection_position, self.state.t + distance / photon_speed);
+        self.record(self.state.r + self.state.d * distance, self.state.t + distance / photon_speed);
     }
 
     pub fn record(&mut self, position: Vec3, time: f64) {
