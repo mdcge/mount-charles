@@ -23,6 +23,7 @@ The simulation volume is a cube centred on the origin and characterized by:
 1. Size: this corresponds to the edge length of the simulation cube. Particle [interaction](#interactions) and [propagation](#propagation) is only calculated inside this volume. For simplicity, the volume is taken to be made of liquid water.
 2. Radiation length: the radiation length of the detector material, used in the scattering calculations of muons and electrons.
 3. Light yield: the light yield of the detector material. This is the conversion factor between the energy deposited in the scintillator and the number of scintillation photons produced.
+4. Refractive index: the refractive index of the material. This dictates the speed of photon in the material, given by $v = c/n$.
 
 ## Particle
 A particle is made of these components:
