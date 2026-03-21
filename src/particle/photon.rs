@@ -1,3 +1,6 @@
+use rand::Rng;
+use rand_distr::{Distribution, UnitSphere};
+
 use crate::utils::vec3::Vec3;
 use crate::geometry::volume::Volume;
 use crate::utils::constants::C;
@@ -42,10 +45,29 @@ impl Photon {
         Photon { state: photon_state, track: photon_track }
     }
 
-    pub fn simulate(&mut self, volume: &Volume) {
-        let distance = volume.intersect(self.state.r, self.state.d);
-        let photon_speed = C / volume.n;  // modify with refractive index
-        self.record(self.state.r + self.state.d * distance, self.state.t + distance / photon_speed);
+    pub fn simulate(&mut self, volume: &Volume, rng: &mut impl Rng) {
+        let photon_speed = C / volume.n;
+
+        loop {
+            // Check the three possible interaction distances
+            let detector_dist = volume.intersect(self.state.r, self.state.d);
+            let absorption_dist = -volume.la * rng.random::<f64>().ln();
+            let scattering_dist = -volume.ls * rng.random::<f64>().ln();
+
+            // Record the new photon vertex
+            let distance = f64::min(f64::min(detector_dist, absorption_dist), scattering_dist);
+            self.state.r += self.state.d * distance;
+            self.state.t += distance / photon_speed;
+            self.record(self.state.r, self.state.t);
+            
+            // Perform correct behaviour depending on interaction type
+            if scattering_dist < detector_dist && scattering_dist < absorption_dist { // scatter
+                let [x, y, z] = UnitSphere.sample(rng);
+                self.state.d = Vec3(x, y, z);
+            } else { // detector wall collision or absorption
+                break;
+            }
+        }
     }
 
     pub fn record(&mut self, position: Vec3, time: f64) {

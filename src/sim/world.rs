@@ -102,7 +102,7 @@ impl World {
                 let direction = Vec3(x, y, z);
                 
                 let mut photon = Photon::new(position, direction, time);
-                photon.simulate(&self.volume);
+                photon.simulate(&self.volume, &mut self.rng);
                 
                 self.photons.push(photon);
             }
