@@ -24,6 +24,8 @@ The simulation volume is a cube centred on the origin and characterized by:
 2. Radiation length: the radiation length of the detector material, used in the scattering calculations of muons and electrons.
 3. Light yield: the light yield of the detector material. This is the conversion factor between the energy deposited in the scintillator and the number of scintillation photons produced.
 4. Refractive index: the refractive index of the material. This dictates the speed of photon in the material, given by $v = c/n$.
+5. Absorption length: the absorption length of the detector material. This affects the photon simulation.
+6. Scattering length: the scattering length of the detector material. This affects the photon simulation. 
 
 ## Particle
 A particle is made of these components:
@@ -172,7 +174,23 @@ determines the number of photons produced at that location. They are all created
 4. Add the photon to the global list of photons.
 
 #### Interactions
-Currently, photons do *not* interact. Eventually, scattering will be added.
+Photons interact via three mechanisms:
+
+1. Wall collision: when a photon collides with the edge of the detector it is immediately killed. Reflections may be added at a later stage.
+2. Absorption: basic absorption of photons in the detector material, upon which the photon is immediately killed.
+3. Scattering: Rayleigh scattering of the photons (although an isotropic approximation is used), upon which the vertex is recorded and the photon propagated in a random direction.
+
+For each step of the simulation, three distances are calculated: the distance to the detector wall along the photon direction, the calculated absorption distance and the calculated scattering distance. The probability of a photon surviving a distance $x$ in a material without being absorbed/scattered depends on the scattering length $\lambda_a$/$\lambda_s$ and follows an exponential decay:
+
+$$P(x) = e^{\frac{-x}{\lambda_{a/s}}}$$
+
+To sample a distance from this distribution, the equation
+
+$$d = -\lambda_{a/s}\ln{(u)}$$
+
+is used, where $u$ is sampled uniformly from 0 to 1.
+
+Once these three distances are obtained, the minumum one determines the interaction that takes place. This is looped over until the photon is absorbed or hits the detector wall.
 
 ### Table of coefficients
 The function that is used to recreate the dE/dx curves for electrons and muons, as well as the Compton scattering cross-section is the so-called "log polynomial" of degree $D$, given by
