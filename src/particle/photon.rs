@@ -1,4 +1,6 @@
 use crate::utils::vec3::Vec3;
+use crate::geometry::volume::Volume;
+use crate::utils::constants::C;
 
 pub struct PhotonState {
     pub r: Vec3,  // position (mm)
@@ -38,6 +40,12 @@ impl Photon {
         let photon_state = PhotonState::new(position, direction, time);
         let photon_track = PhotonTrack::new(position, time);
         Photon { state: photon_state, track: photon_track }
+    }
+
+    pub fn simulate(&mut self, volume: &Volume) {
+        let (intersection_position, distance) = volume.intersect(self.state.r, self.state.d);
+        let photon_speed = C;  // modify with refractive index
+        self.record(intersection_position, self.state.t + distance / photon_speed);
     }
 
     pub fn record(&mut self, position: Vec3, time: f64) {

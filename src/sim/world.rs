@@ -8,7 +8,6 @@ use crate::particle::track::Track;
 use crate::geometry::volume::Volume;
 use crate::utils::physics::{ke, lambda};
 use crate::utils::vec3::Vec3;
-use crate::utils::constants::C;
 
 pub struct World {
     pub time: f64,    // world time (ns)
@@ -101,12 +100,10 @@ impl World {
             for _ in 0..nb_photons {
                 let [x, y, z] = UnitSphere.sample(&mut self.rng);
                 let direction = Vec3(x, y, z);
-                let (intersection_position, distance) = self.volume.intersect(position, direction);
-
-                // Create photon and add to photons vector
+                
                 let mut photon = Photon::new(position, direction, time);
-                let photon_speed = C;  // modify with refractive index
-                photon.record(intersection_position, time + distance / photon_speed);
+                photon.simulate(&self.volume);
+                
                 self.photons.push(photon);
             }
         }
